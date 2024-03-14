@@ -1,11 +1,133 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-</head>
-<body>
-<h1>ToDo List</h1>
-</body>
+  <head>
+    <title>ToDo List</title>
+  </head>
+  <body>
+    <div class="header">
+      <h1>ToDo List</h1>
+    </div>
+    <div class="list">
+      <form>
+        <div class="todo-input-box">
+          <input type="text" class="todo-content" id="todo-content" />
+          <button class="create-btn" id="create-btn">할 일 작성</button>
+        </div>
+      </form>
+    </div>
+<!--    list-->
+    <div class="todo-list" id="todo-list">
+        {{#todoList}}
+            <div class="todoList" id="todo-{{id}}">
+                <div class="content-box">
+                    <input type="checkbox" class="todo-check" data-todo-id="{{id}}" value="{{completed}}" {{#completed}}checked{{/completed}}>
+                    {{content}}
+                    {{createTime}}
+                    <!-- 댓글 삭제 버튼 -->
+                    <button type="button"
+                            class="delete-btn"
+                            data-todo-id="{{id}}">삭제
+                    </button>
+                </div>
+            </div>
+        {{/todoList}}
+    </div>
+    <script>
+      { // 할 일 생성하기 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // 할 일 생성 버튼 변수화
+        const todoCreateBtn = document.querySelector("#create-btn");
+        // 할 일 클릭 이벤트 감지
+        todoCreateBtn.addEventListener("click", function () {
+          const content = {
+            // 할 일 목록 내용
+            content: document.querySelector("#todo-content").value,
+          };
+          // 댓글 객체 출력
+          console.log(content);
+
+          // fetch() - 비동기 통신을 위한 API
+          const url = "/create";
+          fetch(url, {
+            method: "POST", // POST 요청
+            headers: {
+              "Content-Type": "application/json", // 전송 본문의 데이터 타입(JSON) 정보
+            },
+            body: JSON.stringify(content), // comment 객체를 JSON 문자열로 변환해 전송
+          }).then((response) => {
+            // HTTP 응답 코드에 따른 메시지 출력
+            const msg = response.ok
+              ? "할 일 리스트에 추가 완료!!!"
+              : "실패.....ㅜㅜ";
+            alert(msg);
+            // 현재 페이지 새로 고침
+            window.location.reload()
+          });
+        });
+      }
+      { // 할 일 완료 토글~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          const todoCompleteBtn = document.querySelectorAll(".todo-check");
+
+          todoCompleteBtn.forEach(btn => {
+              btn.addEventListener("change", (event) => {
+                  const todoCheckbox = event.target;
+                  const todoId = todoCheckbox.getAttribute("data-todo-id");
+                  const isChecked = todoCheckbox.checked;
+
+                  console.log(`체크박스 변경: ${todoId}, 선택됨: ${isChecked}`);
+
+                  // 완료 REST API 호출
+                  const url = `/complete/${todoId}`;
+                  fetch(url, {
+                      method: "PATCH"
+                  }).then(response => {
+                      // 체크 박스 실패 처리
+                      if (!response.ok) {
+                          alert("서버 통신 에러...!");
+                          return;
+                      }
+                      // 현재 페이지 새로 고침
+                      window.location.reload();
+                  });
+
+              });
+
+          })
+
+      }
+          { // 할 일 삭제하기~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              // 삭제 버튼 선택
+              const todoDeleteBtn = document.querySelectorAll(".delete-btn");
+
+              todoDeleteBtn.forEach(btn => {
+                  btn.addEventListener("click", (event) => {
+                      // 이벤트 발생 요소 선택
+                      const todoDeleteBtn = event.target;
+                      // 삭제 댓글 id 가져오기
+                      const todoId = todoDeleteBtn.getAttribute("data-todo-id");
+                      console.log(`삭제 버튼 클릭: ${todoId}번 댓글`);
+                      // 삭제 REST API 호출
+                      const url = `/delete/${todoId}`;
+                      fetch(url, {
+                          method: "PATCH"
+                      }).then(response => {
+                          // 댓글 삭제 실패 처리
+                          if (!response.ok) {
+                              alert("댓글 삭제 실패..!");
+                              return;
+                          }
+                          // 삭제 성공 시 댓글을 화면에서 지우고 메시지 창 띄우기
+                          const target = document.querySelector(`#todo-${todoId}`);
+                          target.remove();
+                          const msg = `댓글을 삭제했습니다`;
+                          alert(msg);
+                          // 현재 페이지 새로 고침
+                          window.location.reload();
+                      });
+                  });
+              });
+          }
+
+
+    </script>
+  </body>
 </html>

@@ -5,11 +5,16 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/todo
     username: root
     password: 1234
-  thymeleaf:
-    cache: false
-
   # spring data jpa 설정
   jpa:
     hibernate:
       ddl-auto: none
     show-sql: true
+  web:
+    resources:
+      static-locations: classpath:/static/
+#한글 깨짐 현상 해결
+server:
+  servlet:
+    encoding:
+      force: true
